@@ -2,7 +2,7 @@ import express from "express";
 
 const router = express.Router();
 
-router.get("/auth", (req, res) => {
+router.get("/register", (req, res) => {
   res.json({ message: "authenticated" });
 });
 
