@@ -92,4 +92,8 @@ const logout = async (req, res) => {
   });
 };
 
-export { register, login, logout };
+const getMe = async (req, res) => {
+  res.status(200).json({ message: "success", data: { user: req.user } });
+};
+
+export { register, login, logout, getMe };
