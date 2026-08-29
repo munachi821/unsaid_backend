@@ -1,12 +1,11 @@
+import "dotenv/config";
 import express from "express";
-import { config } from "dotenv";
 import { connectDB, disconnectDB } from "./config/db.js";
 import cookieParser from "cookie-parser";
 
 //Import Routes
 import apiRoutes from "./routes/index.js";
 
-config();
 connectDB();
 
 const app = express();
