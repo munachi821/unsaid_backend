@@ -96,4 +96,19 @@ const getMe = async (req, res) => {
   res.status(200).json({ message: "success", data: { user: req.user } });
 };
 
+const resetPassword = async (req, res) => {
+  const { email } = req.body;
+
+  //check if user email exists
+  const checkEmail = await prisma.user.findUnique({
+    where: { email: email },
+  });
+
+  if (!checkEmail) {
+    return res.status(401).json({ err: "user with this email does not exist" });
+  }
+
+  //configure sending emails
+};
+
 export { register, login, logout, getMe };

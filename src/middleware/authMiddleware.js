@@ -6,7 +6,6 @@ const getUserId = async (req, res, next) => {
 
   if (!userToken && req.headers.authorization?.startsWith("Bearer ")) {
     userToken = req.headers.authorization.split(" ")[1];
-    /* return res.status(401).json({ err: "Not authorized, no token" }); */
   }
   if (!userToken) {
     return res.status(401).json({ err: "Not authorized, no token" });
@@ -38,4 +37,4 @@ const getUserId = async (req, res, next) => {
   next();
 };
 
-export default getUserId;
+export { getUserId };
