@@ -51,4 +51,36 @@ const checkUsernameAvailability = async (req, res) => {
   });
 };
 
-export { getPublicProfile, checkUsernameAvailability };
+const updateUsername = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(401).json({ error: "not-authenticated" });
+  }
+
+  const { username } = req.body;
+
+  try {
+    const updateUsername = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        username: username,
+      },
+    });
+
+    if (!updateUsername) {
+      return res.status(401).json({ err: "invalid user" });
+    }
+  } catch (err) {
+    return res.status(500).json({ err: `db issue: ${err}` });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "username updated successfully",
+    data: {
+      username: username,
+    },
+  });
+};
+
+export { getPublicProfile, checkUsernameAvailability, updateUsername };
