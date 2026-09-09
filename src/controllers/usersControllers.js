@@ -1,4 +1,5 @@
 import { prisma } from "../config/db.js";
+import bcrypt from "bcryptjs";
 
 const getPublicProfile = async (req, res) => {
   const username = req.params.username;
@@ -83,4 +84,49 @@ const updateUsername = async (req, res) => {
   });
 };
 
-export { getPublicProfile, checkUsernameAvailability, updateUsername };
+const updatePassword = async (req, res) => {
+  const user = req.user;
+  const { currentPassword, newPassword } = req.body;
+  if (!user) {
+    return res.status(401).json({ error: "not-authenticated" });
+  }
+
+  try {
+    const checkCurrentPass = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { password: true },
+    });
+
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      checkCurrentPass.password,
+    );
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ err: "password dosen't match" });
+    }
+
+    const hashPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashPassword,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ err: `db error: ${err}` });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "password changed successfully",
+  });
+};
+
+export {
+  getPublicProfile,
+  checkUsernameAvailability,
+  updateUsername,
+  updatePassword,
+};

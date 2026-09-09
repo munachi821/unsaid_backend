@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generatetoken.js";
 import { sendEmail } from "../utils/sendEmails.js";
 import crypto from "crypto";
-import { success } from "zod";
 
 const register = async (req, res) => {
   const { name, username, password, email } = req.body;
