@@ -1,18 +1,10 @@
 # The Unsaid - Backend REST API Specification
 
-
-
 This document defines the complete backend architecture, API routes, data models, request/response formats, security specifications, and middleware requirements for **The Unsaid** anonymous messaging platform.
-
-
 
 ---
 
-
-
 ## 1. Architecture Overview & Base Conventions
-
-
 
 - **Base URL**: `/api/v1` (or `/api`)
 
@@ -22,51 +14,35 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Standard Response Structure**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "message": "Optional human-readable status message",
 
-   "success": true,
-
-   "message": "Optional human-readable status message",
-
-   "data": {}
-
- }
-
- ```
+  "data": {}
+}
+```
 
 - **Standard Error Response**:
 
- ```json
+```json
+{
+  "success": false,
 
- {
+  "error": {
+    "code": "VALIDATION_ERROR",
 
-   "success": false,
+    "message": "Invalid email address format",
 
-   "error": {
-
-     "code": "VALIDATION_ERROR",
-
-     "message": "Invalid email address format",
-
-     "details": {}
-
-   }
-
- }
-
- ```
-
-
+    "details": {}
+  }
+}
+```
 
 ---
 
-
-
 ## 2. Authentication & Authorization Routes (`/api/auth`)
-
-
 
 ### 2.1 Register User
 
@@ -78,61 +54,47 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Request Body**:
 
- ```json
+```json
+{
+  "username": "munachi",
 
- {
+  "email": "user@example.com",
 
-   "username": "munachi",
-
-   "email": "user@example.com",
-
-   "password": "SecurePassword123"
-
- }
-
- ```
+  "password": "SecurePassword123"
+}
+```
 
 - **Validation**:
 
- - `username`: Required, 3–30 characters, alphanumeric + underscores only.
+- `username`: Required, 3–30 characters, alphanumeric + underscores only.
 
- - `email`: Required, valid email format, unique.
+- `email`: Required, valid email format, unique.
 
- - `password`: Required, minimum 6 characters.
+- `password`: Required, minimum 6 characters.
 
 - **Success Response (`201 Created`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "message": "User registered successfully",
 
-   "success": true,
+  "data": {
+    "user": {
+      "id": "usr_94a0f3e",
 
-   "message": "User registered successfully",
+      "username": "munachi",
 
-   "data": {
+      "email": "user@example.com",
 
-     "user": {
+      "role": "user"
+    },
 
-       "id": "usr_94a0f3e",
-
-       "username": "munachi",
-
-       "email": "user@example.com",
-
-       "role": "user"
-
-     },
-
-     "token": "eyJhbGciOi..."
-
-   }
-
- }
-
- ```
-
-
+    "token": "eyJhbGciOi..."
+  }
+}
+```
 
 ### 2.2 Login User
 
@@ -144,51 +106,37 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Request Body**:
 
- ```json
+```json
+{
+  "email": "user@example.com",
 
- {
-
-   "email": "user@example.com",
-
-   "password": "SecurePassword123"
-
- }
-
- ```
+  "password": "SecurePassword123"
+}
+```
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "message": "Login successful",
 
-   "success": true,
+  "data": {
+    "user": {
+      "id": "usr_94a0f3e",
 
-   "message": "Login successful",
+      "username": "munachi",
 
-   "data": {
+      "email": "user@example.com",
 
-     "user": {
+      "role": "user"
+    },
 
-       "id": "usr_94a0f3e",
-
-       "username": "munachi",
-
-       "email": "user@example.com",
-
-       "role": "user"
-
-     },
-
-     "token": "eyJhbGciOi..."
-
-   }
-
- }
-
- ```
-
-
+    "token": "eyJhbGciOi..."
+  }
+}
+```
 
 ### 2.3 Get Current User Session
 
@@ -200,43 +148,31 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "data": {
+    "user": {
+      "id": "usr_94a0f3e",
 
-   "success": true,
+      "username": "munachi",
 
-   "data": {
+      "email": "user@example.com",
 
-     "user": {
+      "role": "user",
 
-       "id": "usr_94a0f3e",
+      "preferences": {
+        "emailNotifications": true,
 
-       "username": "munachi",
+        "allowImages": true
+      },
 
-       "email": "user@example.com",
-
-       "role": "user",
-
-       "preferences": {
-
-         "emailNotifications": true,
-
-         "allowImages": true
-
-       },
-
-       "createdAt": "2026-08-26T12:00:00Z"
-
-     }
-
-   }
-
- }
-
- ```
-
-
+      "createdAt": "2026-08-26T12:00:00Z"
+    }
+  }
+}
+```
 
 ### 2.4 Logout User
 
@@ -248,19 +184,13 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "Logged out successfully"
-
- }
-
- ```
-
-
+  "message": "Logged out successfully"
+}
+```
 
 ### 2.5 Request Password Reset
 
@@ -272,31 +202,21 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Request Body**:
 
- ```json
-
- {
-
-   "email": "user@example.com"
-
- }
-
- ```
+```json
+{
+  "email": "user@example.com"
+}
+```
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "If that email exists in our system, a password reset link has been sent."
-
- }
-
- ```
-
-
+  "message": "If that email exists in our system, a password reset link has been sent."
+}
+```
 
 ### 2.6 Reset Password with Token
 
@@ -308,41 +228,27 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Request Body**:
 
- ```json
+```json
+{
+  "token": "reset_token_hex_string",
 
- {
-
-   "token": "reset_token_hex_string",
-
-   "newPassword": "NewSecurePassword123"
-
- }
-
- ```
+  "newPassword": "NewSecurePassword123"
+}
+```
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "Password updated successfully"
-
- }
-
- ```
-
-
+  "message": "Password updated successfully"
+}
+```
 
 ---
 
-
-
 ## 3. User & Settings Routes (`/api/users`)
-
-
 
 ### 3.1 Fetch Public Profile
 
@@ -356,27 +262,19 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "data": {
+    "username": "munachi",
 
-   "success": true,
+    "acceptsMessages": true,
 
-   "data": {
-
-     "username": "munachi",
-
-     "acceptsMessages": true,
-
-     "allowImages": true
-
-   }
-
- }
-
- ```
-
-
+    "allowImages": true
+  }
+}
+```
 
 ### 3.2 Check Username Availability
 
@@ -388,25 +286,17 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "data": {
+    "username": "desired_name",
 
-   "success": true,
-
-   "data": {
-
-     "username": "desired_name",
-
-     "available": true
-
-   }
-
- }
-
- ```
-
-
+    "available": true
+  }
+}
+```
 
 ### 3.3 Update Username
 
@@ -418,37 +308,25 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Request Body**:
 
- ```json
-
- {
-
-   "username": "new_username"
-
- }
-
- ```
+```json
+{
+  "username": "new_username"
+}
+```
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "message": "Username updated successfully",
 
-   "success": true,
-
-   "message": "Username updated successfully",
-
-   "data": {
-
-     "username": "new_username"
-
-   }
-
- }
-
- ```
-
-
+  "data": {
+    "username": "new_username"
+  }
+}
+```
 
 ### 3.4 Change Password
 
@@ -460,33 +338,25 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Request Body**:
 
- ```json
+```json
+{
+  "currentPassword": "OldPassword123",
 
- {
-
-   "currentPassword": "OldPassword123",
-
-   "newPassword": "NewPassword456"
-
- }
-
- ```
+  "newPassword": "NewPassword456"
+}
+```
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "message": "Password changed successfully"
+}
+```
 
-   "success": true,
-
-   "message": "Password changed successfully"
-
- }
-
- ```
-
-
+// add the allow-images col to users database and email notif
 
 ### 3.5 Update Notification & Privacy Preferences
 
@@ -498,43 +368,29 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Request Body**:
 
- ```json
+```json
+{
+  "emailNotifications": true,
 
- {
-
-   "emailNotifications": true,
-
-   "allowImages": true
-
- }
-
- ```
+  "allowImages": true
+}
+```
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "data": {
+    "preferences": {
+      "emailNotifications": true,
 
-   "success": true,
-
-   "data": {
-
-     "preferences": {
-
-       "emailNotifications": true,
-
-       "allowImages": true
-
-     }
-
-   }
-
- }
-
- ```
-
-
+      "allowImages": true
+    }
+  }
+}
+```
 
 ### 3.6 Export User Data
 
@@ -548,41 +404,29 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "data": {
+    "user": { "username": "munachi", "email": "user@example.com" },
 
-   "success": true,
+    "totalMessages": 42,
 
-   "data": {
+    "messages": [
+      {
+        "id": "msg_01",
 
-     "user": { "username": "munachi", "email": "user@example.com" },
+        "mainMessage": "You're doing great!",
 
-     "totalMessages": 42,
+        "img": null,
 
-     "messages": [
-
-       {
-
-         "id": "msg_01",
-
-         "mainMessage": "You're doing great!",
-
-         "img": null,
-
-         "createdAt": "2026-08-20T10:15:00Z"
-
-       }
-
-     ]
-
-   }
-
- }
-
- ```
-
-
+        "createdAt": "2026-08-20T10:15:00Z"
+      }
+    ]
+  }
+}
+```
 
 ### 3.7 Delete Account
 
@@ -594,41 +438,27 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Request Body**:
 
- ```json
-
- {
-
-   "password": "AccountPassword123"
-
- }
-
- ```
+```json
+{
+  "password": "AccountPassword123"
+}
+```
 
 - **Description**: Permanently wipes user record, preferences, and all associated messages/images.
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "Account and all associated data permanently deleted"
-
- }
-
- ```
-
-
+  "message": "Account and all associated data permanently deleted"
+}
+```
 
 ---
 
-
-
 ## 4. Anonymous Message Submission (`/api/messages`)
-
-
 
 ### 4.1 Send Anonymous Message
 
@@ -636,47 +466,37 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Path**: `/api/messages/send/:username`
 
-- **Access**: Public *(Strict rate limit: 10 requests / 15 mins per IP)*
+- **Access**: Public _(Strict rate limit: 10 requests / 15 mins per IP)_
 
 - **Content-Type**: `multipart/form-data`
 
 - **Form Data Fields**:
 
- - `message` (string, required if no image, max 250 characters)
+- `message` (string, required if no image, max 250 characters)
 
- - `img` (file, optional, max 2MB, allowed mimetypes: `image/jpeg`, `image/png`, `image/webp`, `image/gif`)
+- `img` (file, optional, max 2MB, allowed mimetypes: `image/jpeg`, `image/png`, `image/webp`, `image/gif`)
 
 - **Validation**:
 
- - Must provide either `message` or `img` (or both).
+- Must provide either `message` or `img` (or both).
 
- - Maximum character count: 250.
+- Maximum character count: 250.
 
- - Image size must not exceed 2MB.
+- Image size must not exceed 2MB.
 
 - **Success Response (`201 Created`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "Message sent anonymously!"
-
- }
-
- ```
-
-
+  "message": "Message sent anonymously!"
+}
+```
 
 ---
 
-
-
 ## 5. Inbox & Message Management Routes (`/api/messages`)
-
-
 
 ### 5.1 Get Active Inbox Messages
 
@@ -688,63 +508,49 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Query Parameters**:
 
- - `filter`: `"all"` | `"text"` | `"img"` (default: `"all"`)
+- `filter`: `"all"` | `"text"` | `"img"` (default: `"all"`)
 
- - `page`: Integer (default: `1`)
+- `page`: Integer (default: `1`)
 
- - `limit`: Integer (default: `20`)
+- `limit`: Integer (default: `20`)
 
 - **Description**: Returns non-archived messages (< 24 hours old or `isArchived = false`).
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "data": {
+    "messages": [
+      {
+        "id": "msg_812739",
 
-   "success": true,
+        "mainMessage": "Keep building amazing things!",
 
-   "data": {
+        "img": "https://res.cloudinary.com/.../image.webp",
 
-     "messages": [
+        "isArchived": false,
 
-       {
+        "createdAt": "2026-08-26T11:45:00Z",
 
-         "id": "msg_812739",
+        "date": "August 26th",
 
-         "mainMessage": "Keep building amazing things!",
+        "time": "11:45 GMT"
+      }
+    ],
 
-         "img": "https://res.cloudinary.com/.../image.webp",
+    "pagination": {
+      "total": 1,
 
-         "isArchived": false,
+      "page": 1,
 
-         "createdAt": "2026-08-26T11:45:00Z",
-
-         "date": "August 26th",
-
-         "time": "11:45 GMT"
-
-       }
-
-     ],
-
-     "pagination": {
-
-       "total": 1,
-
-       "page": 1,
-
-       "totalPages": 1
-
-     }
-
-   }
-
- }
-
- ```
-
-
+      "totalPages": 1
+    }
+  }
+}
+```
 
 ### 5.2 Get Archived Messages
 
@@ -756,35 +562,27 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Query Parameters**:
 
- - `filter`: `"all"` | `"text"` | `"img"`
+- `filter`: `"all"` | `"text"` | `"img"`
 
- - `page`: Integer
+- `page`: Integer
 
- - `limit`: Integer
+- `limit`: Integer
 
 - **Description**: Returns messages older than 24 hours or manually archived.
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "data": {
+    "messages": [],
 
-   "success": true,
-
-   "data": {
-
-     "messages": [],
-
-     "pagination": { "total": 0, "page": 1, "totalPages": 0 }
-
-   }
-
- }
-
- ```
-
-
+    "pagination": { "total": 0, "page": 1, "totalPages": 0 }
+  }
+}
+```
 
 ### 5.3 Archive Message
 
@@ -796,19 +594,13 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "Message moved to archive"
-
- }
-
- ```
-
-
+  "message": "Message moved to archive"
+}
+```
 
 ### 5.4 Unarchive Message
 
@@ -820,19 +612,13 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "Message restored to inbox"
-
- }
-
- ```
-
-
+  "message": "Message restored to inbox"
+}
+```
 
 ### 5.5 Delete Single Message
 
@@ -844,19 +630,13 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "Message deleted"
-
- }
-
- ```
-
-
+  "message": "Message deleted"
+}
+```
 
 ### 5.6 Clear All Messages
 
@@ -868,43 +648,27 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Request Body**:
 
- ```json
-
- {
-
-   "confirmation": true
-
- }
-
- ```
+```json
+{
+  "confirmation": true
+}
+```
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "All messages cleared successfully"
-
- }
-
- ```
-
-
+  "message": "All messages cleared successfully"
+}
+```
 
 ---
 
-
-
 ## 6. Admin Portal Routes (`/api/admin`)
 
-
-
-*(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)*
-
-
+_(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 
 ### 6.1 Platform Statistics
 
@@ -914,29 +678,21 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "data": {
+    "totalUsers": 1234,
 
-   "success": true,
+    "totalMessages": 8940,
 
-   "data": {
+    "flaggedMessages": 12,
 
-     "totalUsers": 1234,
-
-     "totalMessages": 8940,
-
-     "flaggedMessages": 12,
-
-     "activeUsersLast24h": 340
-
-   }
-
- }
-
- ```
-
-
+    "activeUsersLast24h": 340
+  }
+}
+```
 
 ### 6.2 List Users
 
@@ -946,53 +702,41 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Query Parameters**:
 
- - `search`: string (username or email search)
+- `search`: string (username or email search)
 
- - `status`: `"all"` | `"active"` | `"banned"`
+- `status`: `"all"` | `"active"` | `"banned"`
 
- - `page`: Integer
+- `page`: Integer
 
- - `limit`: Integer
+- `limit`: Integer
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "data": {
+    "users": [
+      {
+        "id": "usr_94a0f3e",
 
-   "success": true,
+        "username": "munachi",
 
-   "data": {
+        "email": "user@example.com",
 
-     "users": [
+        "status": "active",
 
-       {
+        "messageCount": 24,
 
-         "id": "usr_94a0f3e",
+        "createdAt": "2026-08-01T00:00:00Z"
+      }
+    ],
 
-         "username": "munachi",
-
-         "email": "user@example.com",
-
-         "status": "active",
-
-         "messageCount": 24,
-
-         "createdAt": "2026-08-01T00:00:00Z"
-
-       }
-
-     ],
-
-     "pagination": { "total": 1, "page": 1, "totalPages": 1 }
-
-   }
-
- }
-
- ```
-
-
+    "pagination": { "total": 1, "page": 1, "totalPages": 1 }
+  }
+}
+```
 
 ### 6.3 Update User Status (Ban / Unban)
 
@@ -1002,31 +746,21 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Request Body**:
 
- ```json
-
- {
-
-   "status": "banned"
-
- }
-
- ```
+```json
+{
+  "status": "banned"
+}
+```
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "User status updated to banned"
-
- }
-
- ```
-
-
+  "message": "User status updated to banned"
+}
+```
 
 ### 6.4 Delete User (Admin Purge)
 
@@ -1036,19 +770,13 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "User and records permanently purged"
-
- }
-
- ```
-
-
+  "message": "User and records permanently purged"
+}
+```
 
 ### 6.5 Content Moderation Queue
 
@@ -1060,41 +788,29 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "data": {
+    "flaggedMessages": [
+      {
+        "id": "msg_99",
 
-   "success": true,
+        "recipientUsername": "munachi",
 
-   "data": {
+        "mainMessage": "Offensive text example",
 
-     "flaggedMessages": [
+        "imageUrl": null,
 
-       {
+        "flagReason": "Abusive content",
 
-         "id": "msg_99",
-
-         "recipientUsername": "munachi",
-
-         "mainMessage": "Offensive text example",
-
-         "imageUrl": null,
-
-         "flagReason": "Abusive content",
-
-         "createdAt": "2026-08-26T09:00:00Z"
-
-       }
-
-     ]
-
-   }
-
- }
-
- ```
-
-
+        "createdAt": "2026-08-26T09:00:00Z"
+      }
+    ]
+  }
+}
+```
 
 ### 6.6 Moderate / Delete Flagged Message
 
@@ -1104,19 +820,13 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "Flagged message removed"
-
- }
-
- ```
-
-
+  "message": "Flagged message removed"
+}
+```
 
 ### 6.7 Get System Settings
 
@@ -1126,29 +836,21 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
+  "data": {
+    "maxCharLimit": 250,
 
-   "success": true,
+    "maxImageSizeMb": 2,
 
-   "data": {
+    "allowRegistration": true,
 
-     "maxCharLimit": 250,
-
-     "maxImageSizeMb": 2,
-
-     "allowRegistration": true,
-
-     "maintenanceMode": false
-
-   }
-
- }
-
- ```
-
-
+    "maintenanceMode": false
+  }
+}
+```
 
 ### 6.8 Update System Settings
 
@@ -1158,45 +860,31 @@ This document defines the complete backend architecture, API routes, data models
 
 - **Request Body**:
 
- ```json
+```json
+{
+  "maxCharLimit": 250,
 
- {
+  "maxImageSizeMb": 2,
 
-   "maxCharLimit": 250,
+  "allowRegistration": true,
 
-   "maxImageSizeMb": 2,
-
-   "allowRegistration": true,
-
-   "maintenanceMode": false
-
- }
-
- ```
+  "maintenanceMode": false
+}
+```
 
 - **Success Response (`200 OK`)**:
 
- ```json
+```json
+{
+  "success": true,
 
- {
-
-   "success": true,
-
-   "message": "System settings updated"
-
- }
-
- ```
-
-
+  "message": "System settings updated"
+}
+```
 
 ---
 
-
-
 ## 7. Database Entity Relationship & Schema
-
-
 
 ```
 
@@ -1260,15 +948,9 @@ This document defines the complete backend architecture, API routes, data models
 
 ```
 
-
-
 ---
 
-
-
 ## 8. Essential Backend Middlewares & Services
-
-
 
 1\. **`authMiddleware`**: Verifies JWT token from headers/cookies; attaches `req.user` to the request object.
 
@@ -1278,15 +960,12 @@ This document defines the complete backend architecture, API routes, data models
 
 4\. **`rateLimiter`**:
 
-  - `send_message_limiter`: 10 requests / 15 mins per IP.
+- `send_message_limiter`: 10 requests / 15 mins per IP.
 
-  - `auth_limiter`: 5 login attempts / 15 mins per IP.
+- `auth_limiter`: 5 login attempts / 15 mins per IP.
 
 5\. **24-Hour Archive Cron Job**:
 
-  - Runs every hour or midnight.
+- Runs every hour or midnight.
 
-  - Query: `UPDATE messages SET is_archived = true WHERE is_archived = false AND created_at < NOW() - INTERVAL 24 HOUR;`
-
-
-
+- Query: `UPDATE messages SET is_archived = true WHERE is_archived = false AND created_at < NOW() - INTERVAL 24 HOUR;`
