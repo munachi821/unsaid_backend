@@ -356,8 +356,6 @@ This document defines the complete backend architecture, API routes, data models
 }
 ```
 
-// add the allow-images col to users database and email notif
-
 ### 3.5 Update Notification & Privacy Preferences
 
 - **Method**: `PATCH`
@@ -389,70 +387,6 @@ This document defines the complete backend architecture, API routes, data models
       "allowImages": true
     }
   }
-}
-```
-
-### 3.6 Export User Data
-
-- **Method**: `GET`
-
-- **Path**: `/api/users/me/export`
-
-- **Access**: Protected
-
-- **Description**: Returns all received messages and account data formatted as JSON or download stream.
-
-- **Success Response (`200 OK`)**:
-
-```json
-{
-  "success": true,
-
-  "data": {
-    "user": { "username": "munachi", "email": "user@example.com" },
-
-    "totalMessages": 42,
-
-    "messages": [
-      {
-        "id": "msg_01",
-
-        "mainMessage": "You're doing great!",
-
-        "img": null,
-
-        "createdAt": "2026-08-20T10:15:00Z"
-      }
-    ]
-  }
-}
-```
-
-### 3.7 Delete Account
-
-- **Method**: `DELETE`
-
-- **Path**: `/api/users/me`
-
-- **Access**: Protected
-
-- **Request Body**:
-
-```json
-{
-  "password": "AccountPassword123"
-}
-```
-
-- **Description**: Permanently wipes user record, preferences, and all associated messages/images.
-
-- **Success Response (`200 OK`)**:
-
-```json
-{
-  "success": true,
-
-  "message": "Account and all associated data permanently deleted"
 }
 ```
 
@@ -666,11 +600,79 @@ This document defines the complete backend architecture, API routes, data models
 
 ---
 
-## 6. Admin Portal Routes (`/api/admin`)
+## 6. User Data Export & Account Deletion (`/api/users`)
+
+### 6.1 Export User Data
+
+- **Method**: `GET`
+
+- **Path**: `/api/users/me/export`
+
+- **Access**: Protected
+
+- **Description**: Returns all received messages and account data formatted as JSON or download stream.
+
+- **Success Response (`200 OK`)**:
+
+```json
+{
+  "success": true,
+
+  "data": {
+    "user": { "username": "munachi", "email": "user@example.com" },
+
+    "totalMessages": 42,
+
+    "messages": [
+      {
+        "id": "msg_01",
+
+        "mainMessage": "You're doing great!",
+
+        "img": null,
+
+        "createdAt": "2026-08-20T10:15:00Z"
+      }
+    ]
+  }
+}
+```
+
+### 6.2 Delete Account
+
+- **Method**: `DELETE`
+
+- **Path**: `/api/users/me`
+
+- **Access**: Protected
+
+- **Request Body**:
+
+```json
+{
+  "password": "AccountPassword123"
+}
+```
+
+- **Description**: Permanently wipes user record, preferences, and all associated messages/images.
+
+- **Success Response (`200 OK`)**:
+
+```json
+{
+  "success": true,
+
+  "message": "Account and all associated data permanently deleted"
+}
+```
+
+---
+
+## 7. Admin Portal Routes (`/api/admin`)
 
 _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 
-### 6.1 Platform Statistics
+### 7.1 Platform Statistics
 
 - **Method**: `GET`
 
@@ -694,7 +696,7 @@ _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 }
 ```
 
-### 6.2 List Users
+### 7.2 List Users
 
 - **Method**: `GET`
 
@@ -738,7 +740,7 @@ _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 }
 ```
 
-### 6.3 Update User Status (Ban / Unban)
+### 7.3 Update User Status (Ban / Unban)
 
 - **Method**: `PATCH`
 
@@ -762,7 +764,7 @@ _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 }
 ```
 
-### 6.4 Delete User (Admin Purge)
+### 7.4 Delete User (Admin Purge)
 
 - **Method**: `DELETE`
 
@@ -778,7 +780,7 @@ _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 }
 ```
 
-### 6.5 Content Moderation Queue
+### 7.5 Content Moderation Queue
 
 - **Method**: `GET`
 
@@ -812,7 +814,7 @@ _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 }
 ```
 
-### 6.6 Moderate / Delete Flagged Message
+### 7.6 Moderate / Delete Flagged Message
 
 - **Method**: `DELETE`
 
@@ -828,7 +830,7 @@ _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 }
 ```
 
-### 6.7 Get System Settings
+### 7.7 Get System Settings
 
 - **Method**: `GET`
 
@@ -852,7 +854,7 @@ _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 }
 ```
 
-### 6.8 Update System Settings
+### 7.8 Update System Settings
 
 - **Method**: `PATCH`
 
@@ -884,7 +886,7 @@ _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 
 ---
 
-## 7. Database Entity Relationship & Schema
+## 8. Database Entity Relationship & Schema
 
 ```
 
@@ -950,7 +952,7 @@ _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 
 ---
 
-## 8. Essential Backend Middlewares & Services
+## 9. Essential Backend Middlewares & Services
 
 1\. **`authMiddleware`**: Verifies JWT token from headers/cookies; attaches `req.user` to the request object.
 
