@@ -23,7 +23,7 @@ const server = app.listen(process.env.PORT, () => {
 });
 
 //Handle unhandled promise rejections (e.g., database connection errors)!
-process.on("unhandlesRejection", (err) => {
+process.on("unhandledRejection", (err) => {
   console.error("Unhandled Rejection:", err);
   server.close(async () => {
     await disconnectDB();
