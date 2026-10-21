@@ -1,3 +1,4 @@
+import { email } from "zod";
 import { prisma } from "../config/db.js";
 import bcrypt from "bcryptjs";
 
@@ -124,9 +125,48 @@ const updatePassword = async (req, res) => {
   });
 };
 
+const updatePrefrences = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(401).json({ error: "not-authenticated" });
+  }
+
+  const { emailNotifications, allowImages } = req.body;
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        ...(emailNotifications !== undefined && {
+          emailNotif: emailNotifications,
+        }),
+        ...(allowImages !== undefined && { allowImages }),
+      },
+      select: {
+        emailNotif: true,
+        allowImages: true,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Prefrences updated successfully",
+      data: {
+        prefrences: {
+          emailNotifications: updatedUser.emailNotif,
+          allowImages: updatedUser.allowImages,
+        },
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ err: `db issue: ${err}` });
+  }
+};
+
 export {
   getPublicProfile,
   checkUsernameAvailability,
   updateUsername,
   updatePassword,
+  updatePrefrences,
 };
