@@ -11,18 +11,28 @@ datasource db {
   provider = "postgresql"
 }
 
-model User{
-  id String @id @default(uuid())
-  name String
-  username String @unique
-  email String @unique
-  password String
-  role Role @default(user)
-  resetPasswordToken String?
+model User {
+  id                   String    @id @default(uuid())
+  name                 String
+  username             String    @unique
+  email                String    @unique
+  password             String
+  emailNotif           Boolean   @default(true)
+  allowImages          Boolean   @default(true)
+  role                 Role      @default(user)
+  status               Status    @default(active)
+  resetPasswordToken   String?
   resetPasswordExpires DateTime?
-  createdAt DateTime @default(now())
+  updatedAt            DateTime  @updatedAt
+  createdAt            DateTime  @default(now())
 }
-enum Role{
+
+enum Role {
   user
   admin
+}
+
+enum Status {
+  active
+  banned
 }
