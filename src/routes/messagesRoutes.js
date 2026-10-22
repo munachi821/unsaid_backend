@@ -2,9 +2,13 @@ import express from "express";
 import { getUserId } from "../middleware/authMiddleware.js";
 import { upload } from "../middleware/uploadMiddleware.js";
 import {
+  archiveMessage,
+  deleteAllMessage,
+  deleteMessage,
   getArchivedMessage,
   getMessageInbox,
   sendMessage,
+  unarchiveMessage,
 } from "../controllers/messagesControllers.js";
 import { validateRequest } from "../validators/validateRequest.js";
 import { sendMessageSchema } from "../validators/messageValidators.js";
@@ -19,5 +23,9 @@ router.post(
 );
 router.get("/inbox", getUserId, getMessageInbox);
 router.get("/archived", getUserId, getArchivedMessage);
+router.patch("/:id/archive", getUserId, archiveMessage);
+router.patch("/:id/unarchive", getUserId, unarchiveMessage);
+router.delete("/clear-all", getUserId, deleteAllMessage);
+router.delete("/:id", getUserId, deleteMessage);
 
 export default router;

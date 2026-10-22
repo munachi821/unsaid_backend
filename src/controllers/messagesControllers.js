@@ -186,4 +186,149 @@ const getArchivedMessage = async (req, res) => {
   }
 };
 
-export { sendMessage, getMessageInbox, getArchivedMessage };
+const archiveMessage = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(400).json({ err: "not authenticated" });
+  }
+
+  const { id } = req.params;
+
+  try {
+    const archiveMessage = await prisma.message.findFirst({
+      where: {
+        id: id,
+        recipientId: user.id,
+      },
+    });
+
+    if (!archiveMessage) {
+      return res.status(404).json({ err: "Message not found" });
+    }
+
+    await prisma.message.update({
+      where: {
+        id: id,
+      },
+      data: {
+        isArchived: true,
+      },
+    });
+
+    return res.status(200).json({ msg: "messaged archived successfully" });
+  } catch (err) {
+    return res.status(500).json({
+      msg: `databse error ${err}`,
+    });
+  }
+};
+
+const unarchiveMessage = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(400).json({ err: "not authenticated" });
+  }
+
+  const { id } = req.params;
+
+  try {
+    const checkMsg = await prisma.message.findFirst({
+      where: {
+        id: id,
+        recipientId: user.id,
+      },
+    });
+
+    if (!checkMsg) {
+      return res.status(404).json({ err: "Message not found" });
+    }
+
+    await prisma.message.update({
+      where: {
+        id: id,
+      },
+      data: {
+        isArchived: false,
+      },
+    });
+
+    return res.status(200).json({ msg: "Message restored to inbox" });
+  } catch (err) {
+    return res.status(500).json({
+      msg: `databse error ${err}`,
+    });
+  }
+};
+
+const deleteMessage = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(400).json({ err: "not authenticated" });
+  }
+
+  const { id } = req.params;
+
+  try {
+    const checkMsg = await prisma.message.findFirst({
+      where: {
+        id: id,
+        recipientId: user.id,
+      },
+    });
+
+    if (!checkMsg) {
+      return res.status(404).json({ err: "Message not found" });
+    }
+
+    await prisma.message.delete({
+      where: {
+        id: id,
+      },
+    });
+
+    return res.status(200).json({ msg: "Message deleted" });
+  } catch (err) {
+    return res.status(500).json({
+      msg: `databse error ${err}`,
+    });
+  }
+};
+
+const deleteAllMessage = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(400).json({ err: "not authenticated" });
+  }
+
+  const { confirmation } = req.body;
+
+  try {
+    const deleteMsg = !confirmation
+      ? ""
+      : await prisma.message.deleteMany({
+          where: {
+            recipientId: user.id,
+          },
+        });
+
+    if (!deleteMsg) {
+      return res.status(400).json({ err: "failed to delete all messages" });
+    }
+
+    return res.status(200).json({ msg: "All messages cleared successfully" });
+  } catch (err) {
+    return res.status(500).json({
+      msg: `databse error ${err}`,
+    });
+  }
+};
+
+export {
+  sendMessage,
+  getMessageInbox,
+  getArchivedMessage,
+  archiveMessage,
+  unarchiveMessage,
+  deleteMessage,
+  deleteAllMessage,
+};
