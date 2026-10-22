@@ -71,4 +71,61 @@ const sendMessage = async (req, res) => {
     });
   }
 };
-export { sendMessage };
+
+const getMessageInbox = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(400).json({ err: "not authenticated" });
+  }
+
+  const { filter = "all" } = req.query;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+
+  const where = {
+    recipientId: user.id,
+    isArchived: false,
+  };
+
+  if (filter === "text") {
+    where.imageUrl = null;
+  } else if (filter === "img") {
+    where.imageUrl = { not: null };
+  }
+
+  try {
+    const messages = await prisma.message.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    });
+
+    const total = await prisma.message.count({ where });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        messages: messages.map((msg) => ({
+          id: msg.id,
+          message: msg.mainMessage,
+          img: msg.imageUrl,
+          isArchived: msg.isArchived,
+          createdAt: msg.createdAt,
+        })),
+
+        pagination: {
+          total: total,
+          page: page,
+          totalPages: Math.ceil(total / limit) || 0,
+        },
+      },
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, message: `Database err: ${err.message}` });
+  }
+};
+
+export { sendMessage, getMessageInbox };

@@ -1,7 +1,10 @@
 import express from "express";
 import { getUserId } from "../middleware/authMiddleware.js";
 import { upload } from "../middleware/uploadMiddleware.js";
-import { sendMessage } from "../controllers/messagesControllers.js";
+import {
+  getMessageInbox,
+  sendMessage,
+} from "../controllers/messagesControllers.js";
 import { validateRequest } from "../validators/validateRequest.js";
 import { sendMessageSchema } from "../validators/messageValidators.js";
 
@@ -13,5 +16,6 @@ router.post(
   validateRequest(sendMessageSchema),
   sendMessage,
 );
+router.get("/inbox", getUserId, getMessageInbox);
 
 export default router;
