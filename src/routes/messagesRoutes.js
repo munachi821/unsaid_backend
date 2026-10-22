@@ -2,6 +2,7 @@ import express from "express";
 import { getUserId } from "../middleware/authMiddleware.js";
 import { upload } from "../middleware/uploadMiddleware.js";
 import {
+  getArchivedMessage,
   getMessageInbox,
   sendMessage,
 } from "../controllers/messagesControllers.js";
@@ -17,5 +18,6 @@ router.post(
   sendMessage,
 );
 router.get("/inbox", getUserId, getMessageInbox);
+router.get("/archived", getUserId, getArchivedMessage);
 
 export default router;

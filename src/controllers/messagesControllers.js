@@ -128,4 +128,62 @@ const getMessageInbox = async (req, res) => {
   }
 };
 
-export { sendMessage, getMessageInbox };
+const getArchivedMessage = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(400).json({ err: "not authenticated" });
+  }
+
+  const { filter = "all" } = req.query;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+
+  const where = {
+    recipientId: user.id,
+    isArchived: true,
+  };
+
+  if (filter === "text") {
+    where.imageUrl = null;
+  } else if (filter === "img") {
+    where.imageUrl = { not: null };
+  }
+
+  try {
+    const archiveMessage = await prisma.message.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    });
+
+    const total = await prisma.message.count({ where });
+
+    if (!archiveMessage) {
+      return res.status(400).json({ err: "No archived message" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        messages: archiveMessage.map((msg) => ({
+          img: msg.imageUrl,
+          text: msg.mainMessage,
+          createdAt: msg.createdAt,
+        })),
+
+        pagination: {
+          total: total,
+          page: page,
+          totalPages: Math.ceil(total / limit) || 0,
+        },
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      msg: `databse error ${err}`,
+    });
+  }
+};
+
+export { sendMessage, getMessageInbox, getArchivedMessage };
