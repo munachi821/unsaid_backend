@@ -162,10 +162,46 @@ const updatePrefrences = async (req, res) => {
   }
 };
 
+const exportData = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(400).json({ err: "not Authenticated" });
+  }
+
+  try {
+    const msg = await prisma.message.findMany({
+      where: {
+        recipientId: user.id,
+      },
+      select: {
+        id: true,
+        mainMessage: true,
+        imageUrl: true,
+        createdAt: true,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      user: { username: user.username, email: user.email },
+      totalMessages: msg.length,
+      messages: msg.map((messages) => ({
+        id: messages.id,
+        mainMessage: messages.mainMessage,
+        img: messages.imageUrl,
+        createdAt: messages.createdAt,
+      })),
+    });
+  } catch (err) {
+    return res.status(500).json({ err: `db issue: ${err}` });
+  }
+};
+
 export {
   getPublicProfile,
   checkUsernameAvailability,
   updateUsername,
   updatePassword,
   updatePrefrences,
+  exportData,
 };
