@@ -689,8 +689,6 @@ _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
 
     "totalMessages": 8940,
 
-    "flaggedMessages": 12,
-
     "activeUsersLast24h": 340
   }
 }
@@ -777,110 +775,6 @@ _(All routes in this group require `RequireAuth` + `RequireAdmin` middleware)_
   "success": true,
 
   "message": "User and records permanently purged"
-}
-```
-
-### 7.5 Content Moderation Queue
-
-- **Method**: `GET`
-
-- **Path**: `/api/admin/moderation`
-
-- **Query Parameters**: `?status=pending|reviewed`
-
-- **Success Response (`200 OK`)**:
-
-```json
-{
-  "success": true,
-
-  "data": {
-    "flaggedMessages": [
-      {
-        "id": "msg_99",
-
-        "recipientUsername": "munachi",
-
-        "mainMessage": "Offensive text example",
-
-        "imageUrl": null,
-
-        "flagReason": "Abusive content",
-
-        "createdAt": "2026-08-26T09:00:00Z"
-      }
-    ]
-  }
-}
-```
-
-### 7.6 Moderate / Delete Flagged Message
-
-- **Method**: `DELETE`
-
-- **Path**: `/api/admin/moderation/:id`
-
-- **Success Response (`200 OK`)**:
-
-```json
-{
-  "success": true,
-
-  "message": "Flagged message removed"
-}
-```
-
-### 7.7 Get System Settings
-
-- **Method**: `GET`
-
-- **Path**: `/api/admin/settings`
-
-- **Success Response (`200 OK`)**:
-
-```json
-{
-  "success": true,
-
-  "data": {
-    "maxCharLimit": 250,
-
-    "maxImageSizeMb": 2,
-
-    "allowRegistration": true,
-
-    "maintenanceMode": false
-  }
-}
-```
-
-### 7.8 Update System Settings
-
-- **Method**: `PATCH`
-
-- **Path**: `/api/admin/settings`
-
-- **Request Body**:
-
-```json
-{
-  "maxCharLimit": 250,
-
-  "maxImageSizeMb": 2,
-
-  "allowRegistration": true,
-
-  "maintenanceMode": false
-}
-```
-
-- **Success Response (`200 OK`)**:
-
-```json
-{
-  "success": true,
-
-  "message": "System settings updated"
 }
 ```
 
