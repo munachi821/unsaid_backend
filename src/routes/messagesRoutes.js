@@ -11,7 +11,10 @@ import {
   unarchiveMessage,
 } from "../controllers/messagesControllers.js";
 import { validateRequest } from "../validators/validateRequest.js";
-import { sendMessageSchema } from "../validators/messageValidators.js";
+import {
+  clearAllMessagesSchema,
+  sendMessageSchema,
+} from "../validators/messageValidators.js";
 
 const router = express.Router();
 
@@ -25,7 +28,12 @@ router.get("/inbox", getUserId, getMessageInbox);
 router.get("/archived", getUserId, getArchivedMessage);
 router.patch("/:id/archive", getUserId, archiveMessage);
 router.patch("/:id/unarchive", getUserId, unarchiveMessage);
-router.delete("/clear-all", getUserId, deleteAllMessage);
+router.delete(
+  "/clear-all",
+  getUserId,
+  validateRequest(clearAllMessagesSchema),
+  deleteAllMessage,
+);
 router.delete("/:id", getUserId, deleteMessage);
 
 export default router;

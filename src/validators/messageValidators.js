@@ -6,5 +6,11 @@ const sendMessageSchema = z.object({
     .max(250, "Message must not exceed 250 characters")
     .optional(),
 });
-
-export { sendMessageSchema };
+const clearAllMessagesSchema = z.object({
+  confirmation: z.literal(true, {
+    errorMap: () => ({
+      message: "Confirmation must be true to clear all messages",
+    }),
+  }),
+});
+export { sendMessageSchema, clearAllMessagesSchema };
