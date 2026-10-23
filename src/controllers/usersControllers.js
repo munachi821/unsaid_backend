@@ -1,5 +1,6 @@
 import { prisma } from "../config/db.js";
 import bcrypt from "bcryptjs";
+import { deleteFromCloudinary } from "../utils/cloudinary.js";
 
 const getPublicProfile = async (req, res) => {
   const username = req.params.username;
@@ -199,6 +200,66 @@ const exportData = async (req, res) => {
   }
 };
 
+const deleteAccount = async (req, res) => {
+  const user = req.user;
+  const { password } = req.body;
+  if (!user) {
+    return res.status(401).json({ error: "not-authenticated" });
+  }
+
+  try {
+    const userPassword = await prisma.user.findUnique({
+      where: {
+        id: user.id,
+      },
+      select: {
+        password: true,
+      },
+    });
+
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      userPassword.password,
+    );
+
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ msg: "password is incorrect" });
+    }
+
+    const messagesWithImages = await prisma.message.findMany({
+      where: {
+        recipientId: user.id,
+        imageUrl: { not: null },
+      },
+      select: { imageUrl: true },
+    });
+
+    await Promise.all(
+      messagesWithImages.map((m) => deleteFromCloudinary(m.imageUrl)),
+    );
+
+    const deleteUser = await prisma.user.delete({
+      where: {
+        id: user.id,
+      },
+    });
+    if (!deleteUser) {
+      return res.status(400).json({ err: "failed to delete user" });
+    }
+
+    res.cookie("jwt", "", {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+
+    return res.status(200).json({
+      msg: "user has been deleted",
+    });
+  } catch (err) {
+    return res.status(500).json({ err: `issues: ${err}` });
+  }
+};
+
 export {
   getPublicProfile,
   checkUsernameAvailability,
@@ -206,4 +267,5 @@ export {
   updatePassword,
   updatePrefrences,
   exportData,
+  deleteAccount,
 };

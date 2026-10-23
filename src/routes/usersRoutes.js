@@ -7,6 +7,7 @@ import {
   updatePassword,
   updatePrefrences,
   exportData,
+  deleteAccount,
 } from "../controllers/usersControllers.js";
 import {
   updatePreferencesSchema,
@@ -37,5 +38,6 @@ router.patch(
   updatePrefrences,
 );
 router.get("/me/export", getUserId, exportData);
+router.delete("/me", getUserId, deleteAccount);
 
 export default router;
