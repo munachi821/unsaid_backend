@@ -183,14 +183,16 @@ const exportData = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      user: { username: user.username, email: user.email },
-      totalMessages: msg.length,
-      messages: msg.map((messages) => ({
-        id: messages.id,
-        mainMessage: messages.mainMessage,
-        img: messages.imageUrl,
-        createdAt: messages.createdAt,
-      })),
+      data: {
+        user: { username: user.username, email: user.email },
+        totalMessages: msg.length,
+        messages: msg.map((messages) => ({
+          id: messages.id,
+          mainMessage: messages.mainMessage,
+          img: messages.imageUrl,
+          createdAt: messages.createdAt,
+        })),
+      },
     });
   } catch (err) {
     return res.status(500).json({ err: `db issue: ${err}` });

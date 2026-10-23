@@ -18,3 +18,20 @@ export const uploadToCloudinary = (fileBuffer) => {
     uploadStream.end(fileBuffer);
   });
 };
+
+export const deleteFromCloudinary = async (ImageUrl) => {
+  if (!ImageUrl) return;
+
+  try {
+    const parts = ImageUrl.split("/");
+    const filenameWithExt = parts.pop();
+
+    const fileName = filenameWithExt.split(".")[0];
+    const folder = parts.pop();
+    const publicId = `${folder}/${fileName}`;
+
+    await cloudinary.uploader.destroy(publicId);
+  } catch (err) {
+    console.error("Cloudinary deletion failed:", err.message);
+  }
+};

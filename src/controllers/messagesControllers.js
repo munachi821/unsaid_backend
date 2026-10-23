@@ -1,5 +1,8 @@
 import { prisma } from "../config/db.js";
-import { uploadToCloudinary } from "../utils/cloudinary.js";
+import {
+  deleteFromCloudinary,
+  uploadToCloudinary,
+} from "../utils/cloudinary.js";
 import { sendEmail } from "../utils/sendEmails.js";
 const sendMessage = async (req, res) => {
   const { username } = req.params;
@@ -280,6 +283,10 @@ const deleteMessage = async (req, res) => {
       return res.status(404).json({ err: "Message not found" });
     }
 
+    if (checkMsg.imageUrl) {
+      await deleteFromCloudinary(checkMsg.imageUrl);
+    }
+
     await prisma.message.delete({
       where: {
         id: id,
@@ -303,17 +310,29 @@ const deleteAllMessage = async (req, res) => {
   const { confirmation } = req.body;
 
   try {
-    const deleteMsg = !confirmation
-      ? ""
-      : await prisma.message.deleteMany({
-          where: {
-            recipientId: user.id,
-          },
-        });
-
-    if (!deleteMsg) {
-      return res.status(400).json({ err: "failed to delete all messages" });
+    if (confirmation) {
+      return res.status(400).json({
+        success: false,
+        message: "Confirmation is required to clear all messages",
+      });
     }
+    const messagesWithImages = await prisma.message.findMany({
+      where: {
+        recipientId: user.id,
+        imageUrl: { not: null },
+      },
+      select: { imageUrl: true },
+    });
+
+    await prisma.message.deleteMany({
+      where: {
+        recipientId: user.id,
+      },
+    });
+
+    await Promise.all(
+      messagesWithImages.map((m) => deleteFromCloudinary(m.imageUrl)),
+    );
 
     return res.status(200).json({ msg: "All messages cleared successfully" });
   } catch (err) {
