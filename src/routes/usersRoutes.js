@@ -10,6 +10,8 @@ import {
   deleteAccount,
 } from "../controllers/usersControllers.js";
 import {
+  deleteAccountSchema,
+  updatePasswordSchema,
   updatePreferencesSchema,
   updateUsernameSchema,
 } from "../validators/userValidators.js";
@@ -28,7 +30,7 @@ router.patch(
 router.patch(
   "/me/password",
   getUserId,
-  validateRequest(updatePreferencesSchema),
+  validateRequest(updatePasswordSchema),
   updatePassword,
 );
 router.patch(
@@ -38,6 +40,11 @@ router.patch(
   updatePrefrences,
 );
 router.get("/me/export", getUserId, exportData);
-router.delete("/me", getUserId, deleteAccount);
+router.delete(
+  "/me",
+  getUserId,
+  validateRequest(deleteAccountSchema),
+  deleteAccount,
+);
 
 export default router;

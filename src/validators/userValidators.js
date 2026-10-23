@@ -31,4 +31,13 @@ const updatePasswordSchema = z.object({
   newPassword: z.string().min(6, "New password must be at least 6 characters"),
 });
 
-export { updatePreferencesSchema, updateUsernameSchema, updatePasswordSchema };
+const deleteAccountSchema = z.object({
+  password: z.string().min(6, "Password is required"),
+});
+
+export {
+  updatePreferencesSchema,
+  updateUsernameSchema,
+  updatePasswordSchema,
+  deleteAccountSchema,
+};
