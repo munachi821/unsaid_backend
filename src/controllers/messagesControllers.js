@@ -310,7 +310,7 @@ const deleteAllMessage = async (req, res) => {
   const { confirmation } = req.body;
 
   try {
-    if (confirmation) {
+    if (!confirmation) {
       return res.status(400).json({
         success: false,
         message: "Confirmation is required to clear all messages",
