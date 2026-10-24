@@ -21,6 +21,7 @@ const getUserId = async (req, res, next) => {
         name: true,
         username: true,
         email: true,
+        role: true,
         createdAt: true,
       },
     });
