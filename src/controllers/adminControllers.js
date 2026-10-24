@@ -42,7 +42,7 @@ const listAllUsers = async (req, res) => {
     if (search) {
       where.OR = [
         { username: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mide: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
       ];
     }
 

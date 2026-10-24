@@ -11,6 +11,6 @@ const router = express.Router();
 router.use(getUserId, requireAdmin);
 
 router.get("/stats", platformStats);
-router.patch("/users", listAllUsers);
+router.get("/users", listAllUsers);
 
 export default router;
