@@ -1,4 +1,5 @@
 import { prisma } from "../config/db.js";
+import { deleteFromCloudinary } from "../utils/cloudinary.js";
 const platformStats = async (req, res) => {
   try {
     const last24hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -94,4 +95,73 @@ const listAllUsers = async (req, res) => {
   }
 };
 
-export { platformStats, listAllUsers };
+const updateStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const updateUserStatus = await prisma.user.update({
+      where: { id: id },
+      data: { status: status },
+    });
+
+    if (!updateUserStatus) {
+      return res.status(400).json({ msg: "failed to update user status" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `user status updated to ${status}`,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `error: ${err.message}`,
+    });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (req.user.id === id) {
+      return res.status(400).json({
+        success: false,
+        message: "Admins cannot delete their own account via the admin panel",
+      });
+    }
+
+    const messagesWithImages = prisma.message.findMany({
+      where: {
+        recipientId: id,
+        imageUrl: { not: null },
+      },
+      select: { imageUrl: true },
+    });
+
+    await Promise.all(
+      messagesWithImages.map((m) => deleteFromCloudinary(m.imageUrl)),
+    );
+
+    const deleteUser = prisma.user.delete({
+      where: { id: id },
+    });
+
+    if (!deleteUser) {
+      return res.status(400).json({ msg: "failed to update delete user" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `user and records permanently removed`,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `error: ${err.message}`,
+    });
+  }
+};
+
+export { platformStats, listAllUsers, updateStatus, deleteUser };
