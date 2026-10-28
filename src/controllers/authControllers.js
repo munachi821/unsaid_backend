@@ -131,7 +131,7 @@ const forgotPassword = async (req, res) => {
     });
 
     //construct the reset URL
-    const clientUrl = process.env.CLIENT_URL || "https://localhost:5001";
+    const clientUrl = process.env.CLIENT_URL || "https://localhost:5173";
     const resetUrl = `${clientUrl}/reset-password?token=${rawToken}`;
 
     //sending email
