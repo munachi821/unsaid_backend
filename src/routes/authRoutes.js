@@ -15,20 +15,23 @@ import {
   resetPasswordSchema,
 } from "../validators/authValidators.js";
 import { validateRequest } from "../validators/validateRequest.js";
+import { authLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
 router.post("/register", validateRequest(SignUpSchema), register);
-router.post("/login", validateRequest(loginSchema), login);
+router.post("/login", authLimiter, validateRequest(loginSchema), login);
 router.post("/logout", logout);
 router.get("/me", getUserId, getMe);
 router.post(
   "/forgot-password",
+  authLimiter,
   validateRequest(forgotPasswordSchema),
   forgotPassword,
 );
 router.post(
   "/reset-password",
+  authLimiter,
   validateRequest(resetPasswordSchema),
   resetPassword,
 );
