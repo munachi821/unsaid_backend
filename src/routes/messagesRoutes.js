@@ -15,11 +15,13 @@ import {
   clearAllMessagesSchema,
   sendMessageSchema,
 } from "../validators/messageValidators.js";
+import { sendMessageLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
 router.post(
   "/send/:username",
+  sendMessageLimiter,
   upload.single("img"),
   validateRequest(sendMessageSchema),
   sendMessage,
