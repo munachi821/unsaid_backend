@@ -5,8 +5,10 @@ import cookieParser from "cookie-parser";
 
 //Import Routes
 import apiRoutes from "./routes/index.js";
+import { initArchiveCron } from "./jobs/archiveCron.js";
 
 connectDB();
+initArchiveCron();
 
 const app = express();
 
