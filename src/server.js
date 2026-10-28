@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import { connectDB, disconnectDB } from "./config/db.js";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 //Import Routes
 import apiRoutes from "./routes/index.js";
@@ -11,8 +12,27 @@ connectDB();
 initArchiveCron();
 
 const app = express();
-
 app.set("trust proxy", 1);
+
+//Cors setup
+const allowedOrigins = [process.env.CLIENT_URL, "http://localhost:5173"].filter(
+  Boolean,
+);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 //Body parsing middlewares
 app.use(express.json());
