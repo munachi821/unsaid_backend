@@ -20,7 +20,9 @@ const connectDB = async () => {
     console.log("DB Connected via Prisma");
   } catch (error) {
     console.error(`Database connection error: ${error.message}`);
-    process.exit(1);
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
   }
 };
 
