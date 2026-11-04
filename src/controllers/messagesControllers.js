@@ -170,6 +170,7 @@ const getArchivedMessage = async (req, res) => {
       success: true,
       data: {
         messages: archiveMessage.map((msg) => ({
+          id: msg.id,
           img: msg.imageUrl,
           text: msg.mainMessage,
           createdAt: msg.createdAt,
