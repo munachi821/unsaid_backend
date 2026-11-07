@@ -132,7 +132,7 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    const messagesWithImages = prisma.message.findMany({
+    const messagesWithImages = await prisma.message.findMany({
       where: {
         recipientId: id,
         imageUrl: { not: null },
@@ -140,17 +140,15 @@ const deleteUser = async (req, res) => {
       select: { imageUrl: true },
     });
 
-    await Promise.all(
-      messagesWithImages.map((m) => deleteFromCloudinary(m.imageUrl)),
-    );
+    if (messagesWithImages.length > 0) {
+      await Promise.all(
+        messagesWithImages.map((m) => deleteFromCloudinary(m.imageUrl)),
+      );
+    }
 
-    const deleteUser = prisma.user.delete({
+    await prisma.user.delete({
       where: { id: id },
     });
-
-    if (!deleteUser) {
-      return res.status(400).json({ msg: "failed to update delete user" });
-    }
 
     return res.status(200).json({
       success: true,
