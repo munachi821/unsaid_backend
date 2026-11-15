@@ -1,19 +1,25 @@
 import z from "zod";
 
+const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email("Enter a valid email");
+
 const SignUpSchema = z.object({
   name: z.string().min(1, "Name is required"),
   username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Enter a valid email"),
+  email: emailSchema,
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 const loginSchema = z.object({
-  email: z.string().email("Enter a valid email"),
+  email: emailSchema,
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email("Enter a valid email"),
+  email: emailSchema,
 });
 
 const resetPasswordSchema = z.object({
@@ -26,7 +32,7 @@ const verifyEmailSchema = z.object({
 });
 
 const resendVerificationSchema = z.object({
-  email: z.string().email("Enter a valid email"),
+  email: emailSchema,
 });
 
 const googleLoginSchema = z.object({

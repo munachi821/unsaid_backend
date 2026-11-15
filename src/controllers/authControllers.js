@@ -44,12 +44,18 @@ const register = async (req, res) => {
   try {
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [{ email }, { username }],
+        OR: [
+          { email: { equals: email, mode: "insensitive" } },
+          { username },
+        ],
       },
     });
 
     if (existingUser) {
-      const field = existingUser.email === email ? "email" : "username";
+      const field =
+        existingUser.email.toLowerCase() === email.toLowerCase()
+          ? "email"
+          : "username";
       return res
         .status(400)
         .json({ err: `User already exists with this ${field}` });
@@ -112,8 +118,8 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   // check if user email exists
-  const user = await prisma.user.findUnique({
-    where: { email: email },
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" } },
   });
 
   if (!user) {
@@ -216,8 +222,8 @@ const resendVerification = async (req, res) => {
   const { email } = req.body;
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
     });
 
     if (!user) {
@@ -280,8 +286,8 @@ const forgotPassword = async (req, res) => {
 
   //check if user email exists
   try {
-    const user = await prisma.user.findUnique({
-      where: { email: email },
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
     });
 
     if (!user) {
@@ -436,15 +442,16 @@ const googleLogin = async (req, res) => {
       });
     }
 
-    const { sub: googleId, email, name } = payload;
+    const { sub: googleId, name } = payload;
+    const email = payload.email.trim().toLowerCase();
 
     let user = await prisma.user.findUnique({
       where: { googleId },
     });
 
     if (!user) {
-      user = await prisma.user.findUnique({
-        where: { email },
+      user = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } },
       });
 
       if (user) {
