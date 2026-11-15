@@ -4,53 +4,111 @@ import { generateToken } from "../utils/generatetoken.js";
 import { sendEmail } from "../utils/sendEmails.js";
 import crypto from "crypto";
 
+const createVerificationToken = () => {
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(rawToken)
+    .digest("hex");
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  return { rawToken, hashedToken, expiresAt };
+};
+
+const sendVerificationEmail = async (user, rawToken) => {
+  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+  const verifyUrl = `${clientUrl}/verify-email?token=${rawToken}`;
+
+  await sendEmail({
+    to: user.email,
+    subject: "Verify Your Email - The Unsaid",
+    text: `Welcome to The Unsaid! Please verify your email by clicking this link: ${verifyUrl}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Verify Your Email</h2>
+        <p>Hello ${user.name || user.username},</p>
+        <p>Thanks for signing up for <strong>The Unsaid</strong>!</p>
+        <p>Click the button below to verify your email address (valid for 24 hours):</p>
+        <p><a href="${verifyUrl}" style="background: #111; color: #fff; padding: 10px 18px; text-decoration: none; border-radius: 6px; display: inline-block;">Verify Email</a></p>
+        <p>If you didn't create an account, you can safely ignore this email.</p>
+      </div>
+    `,
+  });
+};
+
 const register = async (req, res) => {
   const { name, username, password, email } = req.body;
 
-  const userExists = await prisma.user.findUnique({
-    where: { email: email },
-  });
-
-  if (userExists) {
-    return res.status(400).json({ err: "User already exists with this email" });
-  }
-
-  //Hashing password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-
-  //Adding user to table
-  const user = await prisma.user.create({
-    data: {
-      name,
-      username,
-      email,
-      password: hashedPassword,
-    },
-  });
-
-  //Generate JWT Token
-  const token = generateToken(user.id, res);
-
-  res.status(201).json({
-    status: "success",
-    data: {
-      user: {
-        id: user.id,
-        name: name,
-        username: username,
-        email: email,
-        role: "user",
+  try {
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { username }],
       },
-      token,
-    },
-  });
+    });
+
+    if (existingUser) {
+      const field = existingUser.email === email ? "email" : "username";
+      return res
+        .status(400)
+        .json({ err: `User already exists with this ${field}` });
+    }
+
+    // Hashing password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const { rawToken, hashedToken, expiresAt } = createVerificationToken();
+
+    // Adding user to table
+    const user = await prisma.user.create({
+      data: {
+        name,
+        username,
+        email,
+        password: hashedPassword,
+        isVerified: false,
+        verificationToken: hashedToken,
+        verificationTokenExpires: expiresAt,
+      },
+    });
+
+    try {
+      await sendVerificationEmail(user, rawToken);
+    } catch (emailError) {
+      console.error("Verification email failed:", emailError.message);
+      return res.status(500).json({
+        success: false,
+        message:
+          "Account created, but failed to send verification email. Please request a new verification link.",
+      });
+    }
+
+    return res.status(201).json({
+      status: "success",
+      message:
+        "Registration successful. Please check your email to verify your account.",
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          isVerified: user.isVerified,
+        },
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: `Registration error: ${error.message}`,
+    });
+  }
 };
 
 const login = async (req, res) => {
   const { email, password } = req.body;
 
-  //check if user email exists
+  // check if user email exists
   const user = await prisma.user.findUnique({
     where: { email: email },
   });
@@ -59,17 +117,29 @@ const login = async (req, res) => {
     return res.status(401).json({ err: "Invalid email or password" });
   }
 
-  //verify password
+  if (!user.password) {
+    return res.status(401).json({
+      err: "This account uses Google Sign-In. Please log in with Google.",
+    });
+  }
+
+  // verify password
   const isPasswordValid = await bcrypt.compare(password, user.password);
 
   if (!isPasswordValid) {
     return res.status(401).json({ err: "Invalid email or password" });
   }
 
-  //Generate JWT token
+  if (!user.isVerified) {
+    return res.status(403).json({
+      err: "Please verify your email address before logging in.",
+    });
+  }
+
+  // Generate JWT token
   const token = generateToken(user.id, res);
 
-  res.status(201).json({
+  res.status(200).json({
     status: "success",
     data: {
       user: {
@@ -81,6 +151,110 @@ const login = async (req, res) => {
       token,
     },
   });
+};
+
+  const verifyEmail = async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await prisma.user.findFirst({
+      where: {
+        verificationToken: hashedToken,
+        verificationTokenExpires: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification token",
+      });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        verificationToken: null,
+        verificationTokenExpires: null,
+      },
+    });
+
+    const jwtToken = generateToken(updatedUser.id, res);
+
+    return res.status(200).json({
+      status: "success",
+      message: "Email verified successfully",
+      data: {
+        user: {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          username: updatedUser.username,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          isVerified: updatedUser.isVerified,
+        },
+        token: jwtToken,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+const resendVerification = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message:
+          "If that email exists in our system, a verification link has been sent.",
+      });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "This email is already verified.",
+      });
+    }
+
+    const { rawToken, hashedToken, expiresAt } = createVerificationToken();
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        verificationToken: hashedToken,
+        verificationTokenExpires: expiresAt,
+      },
+    });
+
+    await sendVerificationEmail(user, rawToken);
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "If that email exists in our system, a verification link has been sent.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error sending verification email. Please try again later.",
+    });
+  }
 };
 
 const logout = async (req, res) => {
@@ -227,4 +401,13 @@ const resetPassword = async (req, res) => {
   }
 };
 
-export { register, login, logout, getMe, forgotPassword, resetPassword };
+export {
+  register,
+  login,
+  logout,
+  getMe,
+  forgotPassword,
+  resetPassword,
+  verifyEmail,
+  resendVerification,
+};

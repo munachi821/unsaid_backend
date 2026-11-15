@@ -21,4 +21,19 @@ const resetPasswordSchema = z.object({
   newPassword: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-export { SignUpSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema };
+const verifyEmailSchema = z.object({
+  token: z.string().min(1, "Verification token is required"),
+});
+
+const resendVerificationSchema = z.object({
+  email: z.string().email("Enter a valid email"),
+});
+
+export {
+  SignUpSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  verifyEmailSchema,
+  resendVerificationSchema,
+};
