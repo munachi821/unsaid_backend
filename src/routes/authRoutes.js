@@ -8,6 +8,7 @@ import {
   resetPassword,
   verifyEmail,
   resendVerification,
+  googleLogin,
 } from "../controllers/authControllers.js";
 import { getUserId } from "../middleware/authMiddleware.js";
 import {
@@ -17,6 +18,7 @@ import {
   resetPasswordSchema,
   verifyEmailSchema,
   resendVerificationSchema,
+  googleLoginSchema,
 } from "../validators/authValidators.js";
 import { validateRequest } from "../validators/validateRequest.js";
 import { authLimiter } from "../middleware/rateLimiter.js";
@@ -37,6 +39,12 @@ router.post(
   resendVerification,
 );
 router.post("/login", authLimiter, validateRequest(loginSchema), login);
+router.post(
+  "/google",
+  authLimiter,
+  validateRequest(googleLoginSchema),
+  googleLogin,
+);
 router.post("/logout", logout);
 router.get("/me", getUserId, getMe);
 router.post(

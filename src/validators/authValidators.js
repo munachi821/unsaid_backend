@@ -29,6 +29,10 @@ const resendVerificationSchema = z.object({
   email: z.string().email("Enter a valid email"),
 });
 
+const googleLoginSchema = z.object({
+  token: z.string().min(1, "token is required"),
+});
+
 export {
   SignUpSchema,
   loginSchema,
@@ -36,4 +40,5 @@ export {
   resetPasswordSchema,
   verifyEmailSchema,
   resendVerificationSchema,
+  googleLoginSchema,
 };

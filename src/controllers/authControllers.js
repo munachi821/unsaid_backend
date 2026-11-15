@@ -3,6 +3,9 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generatetoken.js";
 import { sendEmail } from "../utils/sendEmails.js";
 import crypto from "crypto";
+import { OAuth2Client } from "google-auth-library";
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const createVerificationToken = () => {
   const rawToken = crypto.randomBytes(32).toString("hex");
@@ -401,6 +404,103 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const generateUniqueUsername = async (name, email) => {
+  const rawBase = (name || email.split("@")[0] || "user")
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, "");
+  const base = rawBase.length >= 3 ? rawBase.slice(0, 20) : `user${rawBase}`;
+
+  let candidate = base;
+  while (await prisma.user.findUnique({ where: { username: candidate } })) {
+    const suffix = crypto.randomBytes(2).toString("hex");
+    candidate = `${base}_${suffix}`;
+  }
+
+  return candidate;
+};
+
+const googleLogin = async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email || !payload.email_verified) {
+      return res.status(401).json({
+        success: false,
+        message: "Google authentication failed or email is not verified",
+      });
+    }
+
+    const { sub: googleId, email, name } = payload;
+
+    let user = await prisma.user.findUnique({
+      where: { googleId },
+    });
+
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (user) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            googleId,
+            isVerified: true,
+            verificationToken: null,
+            verificationTokenExpires: null,
+          },
+        });
+      } else {
+        const username = await generateUniqueUsername(name, email);
+        user = await prisma.user.create({
+          data: {
+            name: name || username,
+            username,
+            email,
+            googleId,
+            isVerified: true,
+          },
+        });
+      }
+    }
+
+    if (user.status === "banned") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account has been banned",
+      });
+    }
+
+    const jwtToken = generateToken(user.id, res);
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          username: user.username,
+          role: user.role,
+        },
+        token: jwtToken,
+      },
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired Google token",
+    });
+  }
+};
+
 export {
   register,
   login,
@@ -410,4 +510,5 @@ export {
   resetPassword,
   verifyEmail,
   resendVerification,
+  googleLogin,
 };
