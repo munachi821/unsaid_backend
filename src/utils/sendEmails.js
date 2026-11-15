@@ -1,25 +1,25 @@
-import nodemailer from "nodemailer";
-
 export const sendEmail = async ({ to, subject, text, html }) => {
   //create the transporter
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 2525,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+  const response = await fetch("https://sendliberty.com/api/send", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.SEND_LIBERTY_API}`,
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify({
+      from: '"The Unsaid" <munaonye4@gmail.com>',
+      to: to,
+      subject: subject,
+      html: html,
+      text,
+    }),
   });
 
-  //Define the message
-  const mailOptions = {
-    from: process.env.EMAIL_FROM || '"The Unsaid"<noreply@theunsaid.app>',
-    to,
-    subject,
-    text,
-    html,
-  };
+  const data = await response.json();
 
-  const info = await transporter.sendMail(mailOptions);
-  return info;
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to send email via sendLiberty");
+  }
+
+  return data;
 };
